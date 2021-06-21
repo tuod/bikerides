@@ -18,15 +18,6 @@ coloredlogs.install(
 )
 
 
-def remove_path_prefix(full_path: Path, prefix: Path) -> Path:
-    """Заменяет абслдютный путь на относительный, если префикс
-    prefix является абсолютной частью пути path
-    """
-
-    # Ненадежное место. Нужно заменить. Сейчас лень.
-    return Path(str(full_path).replace(f"{prefix}/", "./"))
-
-
 def remove_catalogs_by_name(
     name, exclude=None, project_dir=None, is_verbose=None, is_execute=None
 ):
@@ -44,7 +35,7 @@ def remove_catalogs_by_name(
         ):
             continue
 
-        rel_path = remove_path_prefix(goal, project_dir)
+        rel_path = helpers.remove_path_prefix(goal, project_dir)
         log_message = f"Recursively removing {rel_path}"
         if is_execute:
             logger.warning(log_message) if is_verbose else None
