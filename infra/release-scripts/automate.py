@@ -1,6 +1,5 @@
 import itertools
 import shutil
-import sys
 from pathlib import Path
 
 import coloredlogs
@@ -18,20 +17,23 @@ coloredlogs.install(
 )
 
 
-def remove_path_prefix(fullpath, prefix):
+def remove_path_prefix(full_path: Path, prefix: Path) -> Path:
+    """Заменяет абслдютный путь на относительный, если префикс
+    prefix является абсолютной частью пути path
+    """
+
     # Ненадежное место. Нужно заменить. Сейчас лень.
-    return str(fullpath).replace(f"{prefix}/", "./")
+    return Path(str(full_path).replace(f"{prefix}/", "./"))
 
 
-def remove_catalogs_by_name(args, name, exclude=None, dry_run=None, verbose=None):
-    project_dir = args["project_dir"]
+def remove_catalogs_by_name(name, exclude=None, project_dir=None, is_verbose=None, is_execute=None):
     project_dir = Path(project_dir).expanduser().resolve()
     goals = list(project_dir.glob(f"**/{name}"))
 
     if exclude:
         for i, p in enumerate(exclude):
             rel_path = remove_path_prefix(p, project_dir)
-            logger.info(f"Exclude path ({i+1}): {rel_path}")
+            logger.info(f"Exclude path ({i + 1}): {rel_path}")
 
     for goal in goals:
         if list(
@@ -44,11 +46,11 @@ def remove_catalogs_by_name(args, name, exclude=None, dry_run=None, verbose=None
 
         rel_path = remove_path_prefix(goal, project_dir)
         log_message = f"Recursively removing {rel_path}"
-        if args["execute"]:
-            logger.warning(log_message) if args["verbose"] else None
+        if is_execute:
+            logger.warning(log_message) if is_verbose else None
             shutil.rmtree(goal)
         else:
-            logger.info(f"{log_message}") if args["verbose"] else None
+            logger.info(f"{log_message}") if is_verbose else None
     return goals
 
 
@@ -88,12 +90,15 @@ class Command:
 
     def command_clean_tox_handler(self, args):
         logger.info(f"Cleaning tox...")
-        rm_paths = remove_catalogs_by_name(args, ".tox", exclude=self.removed_paths)
+        rm_paths = remove_catalogs_by_name(".tox", exclude=self.removed_paths, project_dir=args["project_dir"],
+                                           is_verbose=args["verbose"], is_execute=args["execute"])
         self.removed_paths.extend(rm_paths)
 
     def command_clean_pycache_handler(self, args):
         logger.info(f"Cleaning pycache...")
-        rm_paths = remove_catalogs_by_name(args, "__pycache__", exclude=self.removed_paths)
+        rm_paths = remove_catalogs_by_name("__pycache__", exclude=self.removed_paths,
+                                           project_dir=args["project_dir"],
+                                           is_verbose=args["verbose"], is_execute=args["execute"])
         self.removed_paths.extend(rm_paths)
 
     def command_summary_handler(self, args):
@@ -101,6 +106,11 @@ class Command:
 
 
 class App:
+    """ Класс описывающий один вложенный сабпарсер (приложение)
+
+    В данном случае приложением называется один парсер со всеми его аргументами. Подпарсеры являются отдельными
+    вложенными приложениями. Основной парсер и подпарсеры формируют дерево приложений.
+    """
     def __init__(self, name, args=None, commands=None, params=None, parent=None):
         self.name = name
         self.params = params
