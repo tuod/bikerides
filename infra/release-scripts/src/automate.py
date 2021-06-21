@@ -1,17 +1,17 @@
+import argparse
 import itertools
+import logging
 import shutil
 from pathlib import Path
 
 import coloredlogs
-import logging
-import argparse
 
-from argparse_configs import app_config
+from src.argparse_configs import app_config
 
 logger = logging.getLogger(__name__)
 
 coloredlogs.install(
-    level='INFO',
+    level="INFO",
     logger=logger,
     fmt="%(asctime)s - [%(levelname)s] - %(name)s - %(filename)s.%(funcName)s(%(lineno)d) - %(message)s",
 )
@@ -26,7 +26,9 @@ def remove_path_prefix(full_path: Path, prefix: Path) -> Path:
     return Path(str(full_path).replace(f"{prefix}/", "./"))
 
 
-def remove_catalogs_by_name(name, exclude=None, project_dir=None, is_verbose=None, is_execute=None):
+def remove_catalogs_by_name(
+    name, exclude=None, project_dir=None, is_verbose=None, is_execute=None
+):
     project_dir = Path(project_dir).expanduser().resolve()
     goals = list(project_dir.glob(f"**/{name}"))
 
@@ -37,10 +39,7 @@ def remove_catalogs_by_name(name, exclude=None, project_dir=None, is_verbose=Non
 
     for goal in goals:
         if list(
-                itertools.filterfalse(
-                    lambda x: not str(goal).startswith(str(x)),
-                    exclude
-                )
+            itertools.filterfalse(lambda x: not str(goal).startswith(str(x)), exclude)
         ):
             continue
 
@@ -90,15 +89,24 @@ class Command:
 
     def command_clean_tox_handler(self, args):
         logger.info(f"Cleaning tox...")
-        rm_paths = remove_catalogs_by_name(".tox", exclude=self.removed_paths, project_dir=args["project_dir"],
-                                           is_verbose=args["verbose"], is_execute=args["execute"])
+        rm_paths = remove_catalogs_by_name(
+            ".tox",
+            exclude=self.removed_paths,
+            project_dir=args["project_dir"],
+            is_verbose=args["verbose"],
+            is_execute=args["execute"],
+        )
         self.removed_paths.extend(rm_paths)
 
     def command_clean_pycache_handler(self, args):
         logger.info(f"Cleaning pycache...")
-        rm_paths = remove_catalogs_by_name("__pycache__", exclude=self.removed_paths,
-                                           project_dir=args["project_dir"],
-                                           is_verbose=args["verbose"], is_execute=args["execute"])
+        rm_paths = remove_catalogs_by_name(
+            "__pycache__",
+            exclude=self.removed_paths,
+            project_dir=args["project_dir"],
+            is_verbose=args["verbose"],
+            is_execute=args["execute"],
+        )
         self.removed_paths.extend(rm_paths)
 
     def command_summary_handler(self, args):
@@ -106,11 +114,12 @@ class Command:
 
 
 class App:
-    """ Класс описывающий один вложенный сабпарсер (приложение)
+    """Класс описывающий один вложенный сабпарсер (приложение)
 
     В данном случае приложением называется один парсер со всеми его аргументами. Подпарсеры являются отдельными
     вложенными приложениями. Основной парсер и подпарсеры формируют дерево приложений.
     """
+
     def __init__(self, name, args=None, commands=None, params=None, parent=None):
         self.name = name
         self.params = params
@@ -128,24 +137,25 @@ class App:
 
         if not commands:
             self.path = self._calc_path()
-            logger.debug(f"There is no subcommands in command {self.name}. Command path is {self.path}.")
+            logger.debug(
+                f"There is no subcommands in command {self.name}. Command path is {self.path}."
+            )
 
     def register_app(self):
         if not self.parent:
             logger.debug(f"Add new parser for {self.name} app.")
             self.parser = argparse.ArgumentParser()
         else:
-            self.parser = self.parent.subparsers.add_parser(
-                self.name,
-                **self.params
-            )
+            self.parser = self.parent.subparsers.add_parser(self.name, **self.params)
         self.parser.set_defaults(command=self._calc_path(), app=self)
         subparser_help_message = f"{self.name.capitalize()} help"
 
         if self.commands:
             self.subparsers = self.parser.add_subparsers(help=subparser_help_message)
 
-        logger.debug(f"Register new app {self.name}. Parent: {self.parent.name if self.parent else '/'}.")
+        logger.debug(
+            f"Register new app {self.name}. Parent: {self.parent.name if self.parent else '/'}."
+        )
 
     def register_app_args(self):
         for arg in self.args:
@@ -187,7 +197,7 @@ class App:
         return application
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app = App.load_config(app_config)
     parsed_args = app.parse_args()
     Command().execute(vars(parsed_args))
