@@ -4,9 +4,9 @@ from pathlib import Path
 class Args:
     project_dir = {
         "named": [
-            '-p',
-            '--dir',
-            '--project-dir',
+            "-p",
+            "--dir",
+            "--project-dir",
         ],
         "key_value": {
             "type": Path,
@@ -18,9 +18,9 @@ class Args:
 
     execute = {
         "named": [
-            '-e',
-            '--exec',
-            '--execute',
+            "-e",
+            "--exec",
+            "--execute",
         ],
         "key_value": {
             "action": "store_true",
@@ -31,8 +31,8 @@ class Args:
 
     verbose = {
         "named": [
-            '-v',
-            '--verbose',
+            "-v",
+            "--verbose",
         ],
         "key_value": {
             "action": "store_true",
@@ -44,18 +44,14 @@ class Args:
 
 app_config = {
     "name": "commands",
-    "params": {
-        "help": "Root help"
-    },
+    "params": {"help": "Root help"},
     "args": [
         Args.verbose,
     ],
     "commands": [
         {
             "name": "clean",
-            "params": {
-                "help": "Remove all test and build artifacts"
-            },
+            "params": {"help": "Remove all test and build artifacts"},
             "args": [
                 Args.project_dir,
                 Args.execute,
@@ -63,9 +59,7 @@ app_config = {
             "commands": [
                 {
                     "name": "all",
-                    "params": {
-                        "help": "Remove all test and build artifacts"
-                    }
+                    "params": {"help": "Remove all test and build artifacts"},
                 },
                 {
                     "name": "tox",
@@ -73,13 +67,13 @@ app_config = {
                         "help": "Remove tox cache",
                     },
                 },
-{
+                {
                     "name": "pycache",
                     "params": {
                         "help": "Remove __pycache__",
                     },
                 },
-            ]
+            ],
         },
         {
             "name": "summary",
@@ -87,5 +81,5 @@ app_config = {
                 "help": "Print summary",
             },
         },
-    ]
+    ],
 }
