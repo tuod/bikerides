@@ -34,7 +34,7 @@ def remove_catalogs_by_name(
 
     if exclude:
         for i, p in enumerate(exclude):
-            rel_path = remove_path_prefix(p, project_dir)
+            rel_path = helpers.remove_path_prefix(p, project_dir)
             logger.info(f"Exclude path ({i + 1}): {rel_path}")
 
     for goal in goals:
@@ -72,7 +72,7 @@ class Command:
             command_func = self.path_map[path]
         except KeyError:
             if application.leaf:
-                logger.error(f"This is a leaf command, but there is no handler for it.")
+                logger.error("This is a leaf command, but there is no handler for it.")
             else:
                 application.parser.error(message=application.parser.format_help())
         else:
@@ -83,12 +83,12 @@ class Command:
         log(f"Complete command {path}")
 
     def command_clean_all_handler(self, args):
-        logger.info(f"Cleaning all...")
+        logger.info("Cleaning all...")
         self.command_clean_tox_handler(args)
         self.command_clean_pycache_handler(args)
 
     def command_clean_tox_handler(self, args):
-        logger.info(f"Cleaning tox...")
+        logger.info("Cleaning tox...")
         rm_paths = remove_catalogs_by_name(
             ".tox",
             exclude=self.removed_paths,
@@ -99,7 +99,7 @@ class Command:
         self.removed_paths.extend(rm_paths)
 
     def command_clean_pycache_handler(self, args):
-        logger.info(f"Cleaning pycache...")
+        logger.info("Cleaning pycache...")
         rm_paths = remove_catalogs_by_name(
             "__pycache__",
             exclude=self.removed_paths,
@@ -110,7 +110,7 @@ class Command:
         self.removed_paths.extend(rm_paths)
 
     def command_summary_handler(self, args):
-        logger.warning(f"Summary: ...")
+        logger.warning("Summary: ...")
 
 
 class App:
